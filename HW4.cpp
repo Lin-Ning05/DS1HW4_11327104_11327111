@@ -1,9 +1,12 @@
 #include <iostream>
 #include <string>
+#include <limits>
+#include <fstream>
 
 void PrintMenu();
 std::string RemoveSpace(std::string target);
 bool IsInt(std::string num);
+
 
 struct Order {
     int OID;//編號
@@ -12,12 +15,12 @@ struct Order {
     int Timeout; // 逾時時刻
 };
 
-typedef Node Node;
 struct Node {
     Order data;
     Node* next;
     Node(Order& ord) : data(ord), next(nullptr) {}
 };
+typedef Node Node;
 
 class Queue {
 private:
@@ -83,7 +86,9 @@ public:
     bool is_full() const { 
         return size >= 3;
     }
-    
+
+    void sort();
+    bool LoadFromFile(std::string &filename);
 };
 
 int main() {
@@ -160,25 +165,44 @@ std::string RemoveSpace(std::string target) {
   return to_return;
 }
 
-void sort(Order* a, int size) {//我不確定希爾排序是不是長這樣，但我懶得測嘿嘿所以先這樣，我是看google隨便查的圖片錯就再說
+void Queue::sort() {//我不確定希爾排序是不是長這樣，但我懶得測嘿嘿所以先這樣，我是看google隨便查的圖片錯就再說
     int gap = size / 2;
+    Node* temp = head;
     while (gap > 0) {
         for (int i = 0 ; i < size ; i += gap) {
             bool change = false;
-            if (a[i + gap].Arrival > a[i].Arrival) {
+            Node* totry;
+            for (int j = 0 ; j < gap ; j++) {
+                totry = temp->next;
+            }
+            if (totry->data.Arrival > temp->data.Arrival) {
                 change = true;
-            } else if (a[i + gap].Arrival == a[i].Arrival && a[i + gap].OID > a[i].OID) {
+            } else if (totry->data.Arrival == temp->data.Arrival && totry->data.OID > temp->data.OID) {
                 change = true;
             }
 
             if (change) {
-                Order temp = a[i];
-                a[i] = a[i + gap];
-                a[i + gap] = temp;
+                Order t = temp->data;
+                temp->data = totry->data;
+                totry->data = t;
             }
         }
         gap /= 2;
     }
 }
+
+bool Queue::LoadFromFile(std::string &filename) {
+    std::ifstream fin(filename); //fin 型別是 ifstream，全名是「input file stream」，意思是輸入檔案串流，類似cin有buffer
+    if (!fin.is_open()) {
+        std::cout << "\n" << filename << " does not exist!\n\n";
+        return false;
+    }
+    
+
+
+    fin.close();
+    return true;
+}
+
 
 
