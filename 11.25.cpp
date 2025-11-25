@@ -22,6 +22,7 @@ struct AbortData {
     int Abort;// 取消時刻
     int Delay;// 延誤時間
     int CID; // 廚師編號
+    AbortData *next = nullptr;
 };
 
 struct TimeoutData {
@@ -93,13 +94,13 @@ class Queue {
         out = head->data;
         return true;
     }
-    int GetSize() const {
+    int GetSize() {
         return size;
     }
-    bool is_empty() const {
+    bool is_empty() {
         return size == 0;
     }
-    bool is_full() const { 
+    bool is_full() { 
         return size >= 3;
     }
 
@@ -111,50 +112,76 @@ class Queue {
 
 class Cook {
   private:
-    Queue *queue; 
+    Queue *queue = nullptr; 
     int idle_time; //據說這是閒置時刻的英文
   public:
-    void AddToQueue(Order order) {
-      if (queue -> is_full()) { // 要加進來時佇列已滿 取消!!!
-        AbortData to_delete;
-        to_delete.OID = order.OID;
-        to_delete.Abort = order.Arrival;
-        to_delete.Delay = 0;
-        to_delete.CID = 0;
-      }
-
-      else {
-        queue -> enqueue(order);
-      }
-    }
-    
-    bool OrderOKK() {
-      Order to_get(0, 0, 0, 0); // 用來存目前佇列中第一個(下單時間最早)
-      if (queue -> dequeue(to_get)) { // 是否有取到東西順便刪掉(佇列為空則沒有)
-        if (idle_time <= to_get.Arrival) { // 此order可取
-           if (to_get.Timeout >= idle_time) {// 此order可做
-              return true;
-           }
-
-           else {
-            AbortData to_delete;
-            to_delete.OID = to_get.OID;
-            to_delete.Abort = idle_time; // 取消時刻為取出該訂單的閒置時刻
-            to_delete.Delay = to_delete.Abort - to_get.Arrival;// 延誤時間為取消時刻減去該訂單的下單時刻
-            to_delete.CID = 0;
-            return  false;
-           }
+    bool OrderOKK(Order &todo, AbortData *abort_list) {//判斷
+        if (todo.Timeout < idle_time) {
+            RemoveOrder(todo, abort_list);
+            return false;
         }
-        return  false;
-      }
-      return  false;
+        idle_time = idle_time + todo.Duration;
+        return true;
+    }
+
+    void RemoveOrder(Order &todo, AbortData *abort_list) {
+        AbortData *to_delete = new AbortData();;
+        to_delete->OID = todo.OID; // 單號
+        to_delete->Abort = idle_time; // 取消時刻為取出該訂單的閒置時刻
+        to_delete->Delay = to_delete->Abort - todo.Arrival;// 延誤時間為取消時刻減去該訂單的下單時刻
+        to_delete->CID = 0; // 廚師編號
+        if (!abort_list) {
+            abort_list = to_delete;
+            return;
+        }
+
+        AbortData* cur = abort_list;
+        while (cur->next) cur = cur->next;
+        cur->next = to_delete;
+    }
+
+    void Work(Queue *allorder, AbortData *abort_list) {
+        int all_size = allorder -> GetSize();
+        Order to_add(0, 0, 0, 0);
+        allorder -> dequeue(to_add);
+        idle_time = to_add.Arrival + to_add.Duration; // 做第一個
+
+        int i = 0;
+        while (i < all_size) {
+            while (queue && !(queue -> is_full())) {
+                if (i > all_size) {
+                    break;
+                }
+                allorder -> dequeue(to_add);
+                queue -> enqueue(to_add);
+                i++;
+            }
+            Order front(0, 0, 0, 0);
+            allorder->getFront(front);
+            if (front.Arrival >= idle_time) {//目前訂單完成
+                Order to_work(0, 0, 0, 0);
+                queue -> dequeue(to_work);
+                while (!OrderOKK(to_work, abort_list)) { // 找目前佇列可做的那一個
+                    if (queue->GetSize() < 1) {
+                        break;
+                    }
+                    queue -> dequeue(to_work);
+                }
+            } else {
+                if (i > all_size) {
+                    break;
+                }
+                allorder -> dequeue(to_add);
+                RemoveOrder(to_add, abort_list);
+            }
+            i++;
+        }
     }
 };
 
 int main() {
     std::string garbage;
     int verb = -1;
-
     while(true) {
         PrintMenu();
         if (!(std::cin >> verb)) {
@@ -201,7 +228,21 @@ int main() {
             std::cout << "Writing data: " << print_time << " us.\n\n";
 
         } else if (verb == 2) {
-            
+            std::cout << "\nInput a file number: ";
+            std::string num;
+            garbage = RemoveSpace(garbage);
+            if (garbage != "") {
+                num = garbage;
+            } else {
+                getline(std::cin , num);
+                num = RemoveSpace(num);
+            }
+            std::string filename = "sorted" + num + ".txt"; 
+            Queue queue;
+            queue.LoadFromFile(filename);
+            Cook cooker;
+            AbortData* abort_list = nullptr;
+            cooker.Work(&queue , abort_list);
         } else if (verb == 3) {
             
         } else if (verb == 4) {
