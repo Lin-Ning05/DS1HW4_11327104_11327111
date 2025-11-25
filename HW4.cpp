@@ -17,6 +17,20 @@ struct Order {
     Order(int o , int a , int d , int t) : OID(o) , Arrival(a) , Duration(d) , Timeout(t) {}
 };
 
+struct AbortData {
+    int OID;
+    int Abort;// 取消時刻
+    int Delay;// 延誤時間
+    int CID; // 廚師編號
+};
+
+struct TimeoutData {
+    int OID;
+    int Departure;// 完成時刻
+    int Delay;// 延誤時間
+    int CID;
+};
+
 struct Node {
     Order data;
     Node* next;
@@ -25,12 +39,12 @@ struct Node {
 typedef Node Node;
 
 class Queue {
-private:
+  private:
     Node* head;
     Node* tail;
     int size;
 
-public:
+  public:
     Queue() {
         head = nullptr;
         tail = nullptr;
@@ -95,6 +109,14 @@ public:
     bool ToFile(std::string outname);
 };
 
+class Cook {
+  private:
+    Queue *queue;
+    int idle_time; //據說這是閒置時刻的英文
+  public:
+    
+};
+
 int main() {
     std::string garbage;
     int verb = -1;
@@ -122,7 +144,7 @@ int main() {
             std::string filename = "input" + num + ".txt"; 
             Queue queue;
 
-            double timeStart = clock();//你是不是用過其他的取時間的東西，把這個換一下，這個取完超怪
+            double timeStart = clock();
             queue.LoadFromFile(filename);
             double timeEnd = clock();
             int read_time = (timeEnd - timeStart) * 1000;
@@ -190,8 +212,6 @@ std::string RemoveSpace(std::string target) {
   return to_return;
 }
 
-
-
 Node* getNode(Node* start, int step) {
     Node* cur = start;
     for (int i = 0; i < step && cur != nullptr; i++)
@@ -199,7 +219,7 @@ Node* getNode(Node* start, int step) {
     return cur;
 }
 
-void Queue::sort() {//這個我排好啦!!
+void Queue::sort() {//我不確定希爾排序是不是長這樣，但我懶得測嘿嘿所以先這樣，我是看google隨便查的圖片錯就再說
     int gap = size / 2;
     while(gap > 0) {
         for (int i = gap ; i < size ; i++) {
@@ -274,7 +294,7 @@ void Queue::Print() {
     std::cout << std::endl;
 }
 
-bool Queue::ToFile(std::string outname) {//這個是弄出一個檔案bool值不知道會不會用到，我想說我讀檔的時候有用所以我這裡也這樣
+bool Queue::ToFile(std::string outname) {
     std::ofstream fout(outname);
     if (!fout.is_open()) {
         std::cout << "Cannot open file: " << outname << "\n";
@@ -291,3 +311,7 @@ bool Queue::ToFile(std::string outname) {//這個是弄出一個檔案bool值不
     fout.close();
     return true;
 }
+
+
+
+
