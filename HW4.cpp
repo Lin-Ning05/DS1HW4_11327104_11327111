@@ -122,7 +122,7 @@ int main() {
             std::string filename = "input" + num + ".txt"; 
             Queue queue;
 
-            double timeStart = clock();
+            double timeStart = clock();//你是不是用過其他的取時間的東西，把這個換一下，這個取完超怪
             queue.LoadFromFile(filename);
             double timeEnd = clock();
             int read_time = (timeEnd - timeStart) * 1000;
