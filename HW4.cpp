@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include <fstream>
+#include <ctime>
 
 void PrintMenu();
 std::string RemoveSpace(std::string target);
@@ -13,6 +14,7 @@ struct Order {
     int Arrival;//下單時刻
     int Duration;// 製作耗時
     int Timeout; // 逾時時刻
+    Order(int o , int a , int d , int t) : OID(o) , Arrival(a) , Duration(d) , Timeout(t) {}
 };
 
 struct Node {
@@ -47,10 +49,10 @@ public:
     }
 
     bool enqueue(Order& ord) {
-        if (is_full()) return false;
         Node* node = new Node(ord);
         if (tail == nullptr) {
-            head = tail = node;
+            head = node;
+            tail = head;
         } else {
             tail->next = node;
             tail = node;
@@ -89,6 +91,8 @@ public:
 
     void sort();
     bool LoadFromFile(std::string &filename);
+    void Print();
+    bool ToFile(std::string outname);
 };
 
 int main() {
@@ -115,9 +119,30 @@ int main() {
                 getline(std::cin , num);
                 num = RemoveSpace(num);
             }
-            std::string filename = "input" + num + ".txt";  
+            std::string filename = "input" + num + ".txt"; 
+            Queue queue;
 
+            double timeStart = clock();
+            queue.LoadFromFile(filename);
+            double timeEnd = clock();
+            int read_time = (timeEnd - timeStart) * 1000;
 
+            timeStart = clock();
+            queue.Print();
+            timeEnd = clock();
+            int print_time = (timeEnd - timeStart) * 1000;
+
+            timeStart = clock();
+            queue.sort();
+            timeEnd = clock();
+            int sort_time = (timeEnd - timeStart) * 1000;
+
+            filename = "sorted" + num + ".txt";
+            queue.ToFile(filename);
+
+            std::cout << "Reading data: " << read_time << " us.\n\n";
+            std::cout << "Sorting data: " << sort_time << " us.\n\n";
+            std::cout << "Writing data: " << print_time << " us.\n\n";
 
         } else if (verb == 2) {
             
@@ -165,29 +190,49 @@ std::string RemoveSpace(std::string target) {
   return to_return;
 }
 
+
+
+Node* getNode(Node* start, int step) {
+    Node* cur = start;
+    for (int i = 0; i < step && cur != nullptr; i++)
+        cur = cur->next;
+    return cur;
+}
+
 void Queue::sort() {//我不確定希爾排序是不是長這樣，但我懶得測嘿嘿所以先這樣，我是看google隨便查的圖片錯就再說
     int gap = size / 2;
-    Node* temp = head;
-    while (gap > 0) {
-        for (int i = 0 ; i < size ; i += gap) {
-            bool change = false;
-            Node* totry;
-            for (int j = 0 ; j < gap ; j++) {
-                totry = temp->next;
+    while(gap > 0) {
+        for (int i = gap ; i < size ; i++) {
+            Node* temp = getNode(head, i);
+            if (!temp) {
+                continue;
             }
-            if (totry->data.Arrival > temp->data.Arrival) {
-                change = true;
-            } else if (totry->data.Arrival == temp->data.Arrival && totry->data.OID > temp->data.OID) {
-                change = true;
+            int j = i;
+            Order tempData = temp->data;
+            while (j >= gap) {
+                Node* jNode = getNode(head, j - gap);
+                if (!jNode) continue;
+
+                bool change = false;
+
+                if (jNode->data.Arrival > tempData.Arrival) {
+                    change = true;
+                } else if (jNode->data.Arrival == tempData.Arrival && jNode->data.OID > tempData.OID) {
+                    change = true;
+                }
+
+                if (!change) {
+                    break;
+                }
+                Node* jNode2 = getNode(head, j);
+                jNode2->data = jNode->data;  
+                j -= gap;
             }
 
-            if (change) {
-                Order t = temp->data;
-                temp->data = totry->data;
-                totry->data = t;
-            }
+            Node* target = getNode(head, j);
+            target->data = tempData;
         }
-        gap /= 2;
+        gap = gap / 2;
     }
 }
 
@@ -197,12 +242,52 @@ bool Queue::LoadFromFile(std::string &filename) {
         std::cout << "\n" << filename << " does not exist!\n\n";
         return false;
     }
-    
 
+    clear();
+    std::string header;
+    if (!getline(fin, header)) {
+        fin.close();
+        return false;
+    }
+
+    int data[4] = {0};
+    while(fin >> data[0]) {
+        fin >> data[1] >> data[2] >> data[3];
+        Order order(data[0] , data[1] , data[2] , data[3]);
+        enqueue(order);
+    }
 
     fin.close();
     return true;
 }
 
+void Queue::Print() {
+    std::cout << "\tOID\tArrival\tDuration\tTimeOut" << std::endl;
+    Node* temp = head;
+    for (int i = 0 ; i < size ; i++) {
+        std::cout << "(" << i + 1 << ")";
+        std::cout << "\t" << temp->data.OID << "\t" << temp->data.Arrival;
+        std::cout << "\t" << temp->data.Duration << "\t" << temp->data.Timeout;
+        std::cout << std::endl;
+        temp = temp->next;
+    }
+    std::cout << std::endl;
+}
 
+bool Queue::ToFile(std::string outname) {
+    std::ofstream fout(outname);
+    if (!fout.is_open()) {
+        std::cout << "Cannot open file: " << outname << "\n";
+        return false;
+    }
 
+    fout << "OID\tArrival\tDuration\tTimeOut\n";
+    Node* cur = head;
+    while (cur != nullptr) {
+        fout << cur->data.OID << "\t" << cur->data.Arrival << "\t" << cur->data.Duration << "\t" << cur->data.Timeout << "\n";
+        cur = cur->next;
+    }
+
+    fout.close();
+    return true;
+}
