@@ -199,7 +199,7 @@ Node* getNode(Node* start, int step) {
     return cur;
 }
 
-void Queue::sort() {//我不確定希爾排序是不是長這樣，但我懶得測嘿嘿所以先這樣，我是看google隨便查的圖片錯就再說
+void Queue::sort() {//這個我排好啦!!
     int gap = size / 2;
     while(gap > 0) {
         for (int i = gap ; i < size ; i++) {
@@ -274,7 +274,7 @@ void Queue::Print() {
     std::cout << std::endl;
 }
 
-bool Queue::ToFile(std::string outname) {
+bool Queue::ToFile(std::string outname) {//這個是弄出一個檔案bool值不知道會不會用到，我想說我讀檔的時候有用所以我這裡也這樣
     std::ofstream fout(outname);
     if (!fout.is_open()) {
         std::cout << "Cannot open file: " << outname << "\n";
