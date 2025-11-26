@@ -445,7 +445,7 @@ bool ToFile(std::string outname , AbortData* abort_list , TimeoutData* timeout_l
     fout << "\t[Abort List]\n";
     fout << "\tOID\tCID\tDelay\tAbort\n";
 
-    float total_delay = 0;//秒數
+    int total_delay = 0;//秒數
     int total_delay_order = 0;
     float failure_per = 0;
 
@@ -473,7 +473,7 @@ bool ToFile(std::string outname , AbortData* abort_list , TimeoutData* timeout_l
 
     failure_per = ((float)total_delay_order/(float)total_order) * 100; //失敗率
 
-    fout << "[Total Delay]\n" << std::fixed << std::setprecision(2) << total_delay <<" min.\n";
+    fout << "[Total Delay]\n" << total_delay <<" min.\n";
     fout << "[Failure Percentage]\n" << std::fixed << std::setprecision(2) <<failure_per <<"  %\n";
     
     fout.close();
