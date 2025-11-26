@@ -199,7 +199,8 @@ class Cook {
             }
 
             if (to_work.Arrival >= idle_time) {//目前訂單完成
-                while (queue -> dequeue(to_work) && !OrderOKK(to_work, abort_list, timeout_list)) {} // 找目前佇列可做的那一個
+                Order to_do(0, 0, 0, 0);
+                while (queue -> dequeue(to_do) && !OrderOKK(to_do, abort_list, timeout_list)) {} // 找目前佇列可做的那一個
                 queue -> enqueue(to_work);
             } 
             else if (!put) {
