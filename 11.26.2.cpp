@@ -163,7 +163,7 @@ class Cook {
             to_delete->Delay = 0;
         } else {
             to_delete->CID = number;
-            to_delete->Abort = idle_time + todo.Arrival;
+            to_delete->Abort = idle_time;
             to_delete->Delay = to_delete->Abort - todo.Arrival;// 延誤時間為取消時刻減去該訂單的下單時刻
         }
         if (!abort_list) {
@@ -183,7 +183,7 @@ class Cook {
         idle_time = to_add.Arrival + to_add.Duration; // 做第一個
 
         int i = 1;
-        while (i < all_size) {
+        while (i <= all_size) {
             while ((queue && !(queue -> is_full())) || !queue) {
                 if (!allorder) {
                     break;
@@ -193,8 +193,14 @@ class Cook {
                 i++;
             }
             Order front(0, 0, 0, 0);
-            allorder->getFront(front);
-            std::cout << front.Arrival;
+
+            if (!(allorder->getFront(front))) {
+                Order to_work(0, 0, 0, 0);
+                while (queue -> dequeue(to_work)) {
+                    OrderOKK(to_work, abort_list, timeout_list);
+                }
+                return;
+            }
             if (front.Arrival >= idle_time) {//目前訂單完成
                 Order to_work(0, 0, 0, 0);
                 queue -> dequeue(to_work);
@@ -437,7 +443,7 @@ bool ToFile(std::string outname , AbortData* abort_list , TimeoutData* timeout_l
     }
 
     fout << "\t[Abort List]\n";
-    fout << "OID\tCID\tDelay\tAbort\n";
+    fout << "\tOID\tCID\tDelay\tAbort\n";
 
     float total_delay = 0;//秒數
     int total_delay_order = 0;
@@ -453,7 +459,7 @@ bool ToFile(std::string outname , AbortData* abort_list , TimeoutData* timeout_l
     }
 
     fout << "\t[Timeout List]\n";
-    fout << "OID\tCID\tDelay\tDeparture\n";
+    fout << "\tOID\tCID\tDelay\tDeparture\n";
     int i = 1;
     TimeoutData* cur_timeout = timeout_list;
     while (cur_timeout) {
@@ -465,7 +471,7 @@ bool ToFile(std::string outname , AbortData* abort_list , TimeoutData* timeout_l
         total_delay_order++;
     }
 
-    failure_per = (total_delay_order/total_order) * 100; //失敗率
+    failure_per = ((float)total_delay_order/(float)total_order) * 100; //失敗率
 
     fout << "[Total Delay]\n" << std::fixed << std::setprecision(2) << total_delay <<" min.\n";
     fout << "[Failure Percentage]\n" << std::fixed << std::setprecision(2) <<failure_per <<"  %\n";
