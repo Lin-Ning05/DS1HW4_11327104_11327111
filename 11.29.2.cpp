@@ -62,6 +62,7 @@ class Queue {
             delete t;
         }
         tail = nullptr;
+        size = 0;
     }
     bool enqueue(Order& ord) {
         Node* node = new Node(ord);
@@ -187,44 +188,6 @@ class Cook {
         while (cur->next) cur = cur->next;
         cur->next = to_delete;
     }
-
-    /*void Work(Queue *allorder, AbortData* &abort_list, TimeoutData* &timeout_list) {
-        int all_size = allorder -> GetSize();
-        int i = 0;
-        Order to_work(0, 0, 0, 0);
-        while (i <= all_size) {
-            bool put = false;
-            if (allorder && !(allorder -> dequeue(to_work))) {
-                while (queue -> dequeue(to_work)) {
-                    OrderOKK(to_work, abort_list, timeout_list);
-                }
-                return;
-            }
-
-            if (queue -> is_empty() && to_work.Arrival >= idle_time) {
-                idle_time = to_work.Duration + to_work.Arrival;
-                i++;
-                continue;
-            } 
-            else if (!(queue -> is_full()) && to_work.Arrival < idle_time) {
-                queue -> enqueue(to_work);
-                put = true;
-            }
-
-            if (to_work.Arrival >= idle_time) {//目前訂單完成
-                Order to_do(0, 0, 0, 0);
-                while (queue -> dequeue(to_do) && !OrderOKK(to_do, abort_list, timeout_list)) {} // 找目前佇列可做的那一個
-                queue -> enqueue(to_work);
-            } 
-            else if (!put) {
-                if (i > all_size) {
-                    break;
-                }
-                RemoveOrder(to_work, abort_list , true);
-                i++;
-            }
-        }
-    }*/
 };
 
 class Kitchen {
@@ -532,6 +495,7 @@ void Kitchen::SetKitchen(int num_of_cook) {
 
 void Kitchen::SetAllorder(std::string &filename) {
     allorder->LoadFromFile(filename);
+    allorder->Print();
     total_order = allorder->GetSize();
 }
 
@@ -547,15 +511,14 @@ void Kitchen::Work() {
             }
             return;
         }
-
+        i++;
         if (to_work.Arrival + to_work.Duration > to_work.Timeout) {//分法輸入，忽略
-            i++;
+            total_order--;
             continue;
         }
 
         if (cook[1].GetQueue() -> is_empty() && to_work.Arrival >= cook[1].GetIdleTime()) {
             cook[1].SetIdleTime(to_work.Duration + to_work.Arrival);
-            i++;
             continue;
         } 
         else if (!(cook[1].GetQueue() -> is_full()) && to_work.Arrival < cook[1].GetIdleTime()) {
@@ -571,7 +534,6 @@ void Kitchen::Work() {
                         break;
                 }
             }
-            i++;
             cook[1].GetQueue() -> enqueue(to_work);
         } 
         else if (!put) {
@@ -579,7 +541,6 @@ void Kitchen::Work() {
                 break;
             }
             cook[1].RemoveOrder(to_work, abort_list , true);
-            i++;
         }
     }
 }
