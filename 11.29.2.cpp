@@ -566,7 +566,6 @@ void Kitchen::Work() {
         if (to_work.Arrival >= cook[1].GetIdleTime()) {
             Order to_do(0, 0, 0, 0);
             while (cook[1].GetQueue() -> dequeue(to_do)){
-                std::cout << to_do.OID << "  " << cook[1].GetIdleTime() << "\n";
                 if (cook[1].OrderOKK(to_do, abort_list, timeout_list) && 
                     cook[1].GetIdleTime() > to_work.Arrival) {
                         break;
