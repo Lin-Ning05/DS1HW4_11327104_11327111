@@ -461,7 +461,7 @@ bool Queue::LoadFromFile(std::string &filename) {
 
     std::string a[4];
     int data[4] = {0};
-    while (getline(fin, a[0], '\t') && getline(fin, a[1], '\t') &&getline(fin, a[2], '\t') &&getline(fin, a[3])) {
+    while (getline(fin, a[0], '\t') && getline(fin, a[1], '\t') && getline(fin, a[2], '\t') && getline(fin, a[3])) {
 
         a[0] = RemoveDotTab(a[0]);
         a[1] = RemoveDotTab(a[1]);
@@ -675,7 +675,7 @@ void Kitchen::Work() {
             return;
         }
         j++;
-        if (to_work.Arrival < 0 || to_work.Duration < 0 || to_work.OID < 0 || to_work.Timeout < 0) {//非法輸入，忽略
+        if (to_work.Duration <= 0) {//非法輸入，忽略
             total_order--;
             continue;
         } else if(to_work.Arrival + to_work.Duration > to_work.Timeout) {
