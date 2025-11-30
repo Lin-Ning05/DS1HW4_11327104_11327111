@@ -390,7 +390,7 @@ std::string RemoveSpace(std::string target) {
 std::string RemoveDotTab(std::string target) {
     std::string to_return;
     for (int i = 0 ; i < target.size() ; i++) {
-        if (target[i] == '.' || target[i] == '\t') {
+        if (target[i] == '.' || target[i] == '\t' || target[i] == ' ') {
             break;
         }
         to_return = to_return + target[i];
@@ -467,7 +467,7 @@ bool Queue::LoadFromFile(std::string &filename) {
         a[1] = RemoveDotTab(a[1]);
         a[2] = RemoveDotTab(a[2]);
         a[3] = RemoveDotTab(a[3]);
-        
+
         a[0] = RemoveSpace(a[0]);
         a[1] = RemoveSpace(a[1]);
         a[2] = RemoveSpace(a[2]);
