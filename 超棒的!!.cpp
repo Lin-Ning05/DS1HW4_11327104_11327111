@@ -203,6 +203,12 @@ class Kitchen {
     int total_order = -1;
 
   public:
+    ~Kitchen() {
+        if (total_order == -1) {
+            return;
+        }
+        clear();
+    }
     void clear();
     void SetKitchen(int num_of_cook);
     bool SetAllorder(std::string &filename);
@@ -359,6 +365,9 @@ bool IsInt(std::string num) {
         return false;
     }
   for (int i = 0; i < num.size(); i++) {
+    if (i == 0 && (num[i] == '+' || num[i] == '-')) {
+        continue;
+    }
     if(num[i] > '9' || num[i] < '0') {
       return false;
     }
