@@ -1,3 +1,5 @@
+//11327104 林采寧 11327111 林方晴
+
 #include <iostream>
 #include <string>
 #include <limits>
@@ -376,13 +378,24 @@ bool IsInt(std::string num) {
 }
 
 std::string RemoveSpace(std::string target) {
-  std::string to_return;
-  for (int i = 0; i < target.size() ;i++) {
+    std::string to_return;
+    for (int i = 0; i < target.size() ;i++) {
     if (target[i] != ' ' && target[i] != '\t' && target[i] != '\n') {
       to_return = to_return + target[i];
     }
   }
-  return to_return;
+    return to_return;
+}
+
+std::string RemoveDot(std::string target) {
+    std::string to_return;
+    for (int i = 0 ; i < target.size() ; i++) {
+        if (target[i] == '.') {
+            break;
+        }
+        to_return = to_return + target[i];
+    }
+    return to_return;
 }
 
 Node* getNode(Node* start, int step) {
@@ -454,6 +467,11 @@ bool Queue::LoadFromFile(std::string &filename) {
         a[1] = RemoveSpace(a[1]);
         a[2] = RemoveSpace(a[2]);
         a[3] = RemoveSpace(a[3]);
+
+        a[0] = RemoveDot(a[0]);
+        a[1] = RemoveDot(a[1]);
+        a[2] = RemoveDot(a[2]);
+        a[3] = RemoveDot(a[3]);
 
         for (int i = 0; i < 4; i++) {
             if (IsInt(a[i])) {
