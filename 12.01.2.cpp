@@ -312,7 +312,7 @@ int main() {
                     continue;
                 }
 
-                if (num > 0 && num < 19) {
+                if (num > 0 && num < 20) {
                     break;
                 }
 
